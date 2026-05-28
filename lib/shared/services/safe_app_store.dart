@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:safe/core/database/quiz_database.dart';
 import 'package:safe/core/models/quiz.dart';
@@ -5,11 +7,13 @@ import 'package:safe/core/models/report_record.dart';
 import 'package:safe/core/models/traffic_point.dart';
 import 'package:safe/core/models/user_score.dart';
 import 'package:safe/shared/services/current_user_profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SafeAppStore extends ChangeNotifier {
   SafeAppStore._();
 
   static final SafeAppStore instance = SafeAppStore._();
+  static const String _userScorePrefsPrefix = 'safe_user_score';
 
   final List<TrafficPoint> _trafficPoints = [
     TrafficPoint(
@@ -81,11 +85,52 @@ class SafeAppStore extends ChangeNotifier {
   );
 
   String? _latestTrafficPointId;
+  bool _initialized = false;
 
   List<TrafficPoint> get trafficPoints => List.unmodifiable(_trafficPoints);
   List<ReportRecord> get reports => List.unmodifiable(_reports.reversed);
   UserScore get userScore => _userScore;
   String? get latestTrafficPointId => _latestTrafficPointId;
+  bool get initialized => _initialized;
+
+  Future<void> initialize() async {
+    if (_initialized) return;
+
+    await _loadUserScore(CurrentUserProfile.id);
+
+    _initialized = true;
+    notifyListeners();
+  }
+
+  Future<void> loadUserScoreForCurrentUser() async {
+    await _loadUserScore(CurrentUserProfile.id);
+    notifyListeners();
+  }
+
+  Future<void> _loadUserScore(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = _userScorePrefsKey(userId);
+    final savedScore = prefs.getString(key);
+
+    if (savedScore == null) {
+      _userScore = UserScore(
+        userId: userId,
+        lastQuizDate: DateTime.now().subtract(const Duration(days: 1)),
+      );
+      return;
+    }
+
+    try {
+      final decoded = jsonDecode(savedScore) as Map<String, dynamic>;
+      _userScore = UserScore.fromMap(decoded);
+    } catch (_) {
+      await prefs.remove(key);
+      _userScore = UserScore(
+        userId: userId,
+        lastQuizDate: DateTime.now().subtract(const Duration(days: 1)),
+      );
+    }
+  }
 
   int get reportCount => _reports.length;
   int get trafficPointCount => _trafficPoints.length;
@@ -266,12 +311,12 @@ class SafeAppStore extends ChangeNotifier {
     };
   }
 
-  void completeQuiz({
+  Future<void> completeQuiz({
     required int earnedPoints,
     required int correctAnswers,
     required int totalQuestions,
     required bool perfect,
-  }) {
+  }) async {
     final today = _dateOnly(DateTime.now());
     final lastQuizDay = _dateOnly(_userScore.lastQuizDate);
     final daysSinceLastQuiz = today.difference(lastQuizDay).inDays;
@@ -295,7 +340,7 @@ class SafeAppStore extends ChangeNotifier {
     }
 
     _userScore = UserScore(
-      userId: _userScore.userId,
+      userId: CurrentUserProfile.id,
       totalPoints: _userScore.totalPoints + earnedPoints,
       streak: newStreak,
       maxStreak: newStreak > _userScore.maxStreak
@@ -308,7 +353,36 @@ class SafeAppStore extends ChangeNotifier {
     );
 
     notifyListeners();
+    await _saveUserScore();
   }
+
+  Future<void> awardQuizPoints(int points) async {
+    if (points <= 0) return;
+
+    _userScore = UserScore(
+      userId: CurrentUserProfile.id,
+      totalPoints: _userScore.totalPoints + points,
+      streak: _userScore.streak,
+      maxStreak: _userScore.maxStreak,
+      quizzesCompleted: _userScore.quizzesCompleted,
+      correctAnswers: _userScore.correctAnswers,
+      lastQuizDate: _userScore.lastQuizDate,
+      badges: _userScore.badges,
+    );
+
+    notifyListeners();
+    await _saveUserScore();
+  }
+
+  Future<void> _saveUserScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _userScorePrefsKey(_userScore.userId),
+      jsonEncode(_userScore.toMap()),
+    );
+  }
+
+  String _userScorePrefsKey(String userId) => '$_userScorePrefsPrefix.$userId';
 
   List<Leaderboard> getLeaderboard({int limit = 5}) {
     final entries = [

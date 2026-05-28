@@ -349,7 +349,7 @@ class _QuizScreenState extends State<QuizScreen> {
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
-        onPressed: _isAnswered ? _goToNextQuestion : null,
+        onPressed: _isAnswered ? () => _goToNextQuestion() : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.accent,
           disabledBackgroundColor: AppColors.bgCardLight,
@@ -576,8 +576,9 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  void _answerCurrentQuestion(int answerIndex) {
+  Future<void> _answerCurrentQuestion(int answerIndex) async {
     final isCorrect = answerIndex == _currentQuestion.correctAnswerIndex;
+    final earnedPoints = isCorrect ? 10 + (_currentQuestion.difficulty * 2) : 0;
 
     setState(() {
       _selectedAnswer = answerIndex;
@@ -585,25 +586,33 @@ class _QuizScreenState extends State<QuizScreen> {
 
       if (isCorrect) {
         _correctAnswers++;
-        _sessionPoints += 10 + (_currentQuestion.difficulty * 2);
+        _sessionPoints += earnedPoints;
       }
     });
+
+    if (earnedPoints > 0) {
+      await _store.awardQuizPoints(earnedPoints);
+    }
   }
 
-  void _goToNextQuestion() {
+  Future<void> _goToNextQuestion() async {
     final isLastQuestion = _currentIndex == _questions.length - 1;
 
     if (isLastQuestion) {
       final perfect = _correctAnswers == _questions.length;
-      if (perfect) _sessionPoints += 50;
+      if (perfect) {
+        setState(() => _sessionPoints += 50);
+        await _store.awardQuizPoints(50);
+      }
 
-      _store.completeQuiz(
-        earnedPoints: _sessionPoints,
+      await _store.completeQuiz(
+        earnedPoints: 0,
         correctAnswers: _correctAnswers,
         totalQuestions: _questions.length,
         perfect: perfect,
       );
 
+      if (!mounted) return;
       setState(() => _isCompleted = true);
       return;
     }

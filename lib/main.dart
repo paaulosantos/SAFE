@@ -11,11 +11,13 @@ import 'package:safe/features/map/map_screen.dart';
 import 'package:safe/features/profile/profile_screen.dart';
 import 'package:safe/features/quiz/quiz_screen.dart';
 import 'package:safe/features/report/report_screen.dart';
+import 'package:safe/shared/services/safe_app_store.dart';
 import 'package:safe/shared/services/safe_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final firebaseReady = await _initializeFirebase();
+  await SafeAppStore.instance.initialize();
   await SafeNotificationService.initializeAndScheduleDailyQuiz();
   runApp(SafeApp(firebaseReady: firebaseReady));
 }
@@ -68,7 +70,10 @@ class _AuthGateState extends State<AuthGate> {
     });
   }
 
-  void _enterAuthenticatedApp() {
+  Future<void> _enterAuthenticatedApp() async {
+    await SafeAppStore.instance.loadUserScoreForCurrentUser();
+    if (!mounted) return;
+
     setState(() {
       _authenticatedThisSession = true;
     });

@@ -20,10 +20,7 @@ class UserScore {
   });
 
   int get safetyScore {
-    // Índice de segurança de 0 a 100
-    if (quizzesCompleted == 0) return 50; // Inicial
-    final percentage = (correctAnswers / (quizzesCompleted * 5)) * 100;
-    return (percentage * 0.7 + (streak / 30) * 30).toInt().clamp(0, 100);
+    return totalPoints.clamp(0, 100);
   }
 
   String get safetyLevel {

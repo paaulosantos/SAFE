@@ -13,7 +13,7 @@ const _mutedLavender = Color(0xFF8E839C);
 class LoginScreen extends StatefulWidget {
   final bool firebaseReady;
   final VoidCallback onDemoAccess;
-  final VoidCallback? onAuthenticated;
+  final Future<void> Function()? onAuthenticated;
 
   const LoginScreen({
     super.key,
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         await auth.signInWithEmailAndPassword(email: email, password: password);
       }
-      widget.onAuthenticated?.call();
+      await widget.onAuthenticated?.call();
     } on FirebaseAuthException catch (error) {
       setState(() {
         _message = _authMessage(error);
@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       await FirebaseAuth.instance.signInWithCredential(credential);
-      widget.onAuthenticated?.call();
+      await widget.onAuthenticated?.call();
     } on GoogleSignInException catch (error) {
       if (error.code == GoogleSignInExceptionCode.canceled) {
         setState(() {

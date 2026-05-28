@@ -1,6 +1,6 @@
 {
     "dart.flutterSdkPath": "C:/src/flutter",
-    "cmake.sourceDirectory": "C:/Users/owlle/Desktop/SAFE-main/linux",
+    "cmake.sourceDirectory": "C:/Users/owlle/Desktop/SAFE-main/windows",
     "gradle.autoDetect": "off",
     "java.gradle.buildServer.enabled": "off",
     "java.import.gradle.enabled": false,

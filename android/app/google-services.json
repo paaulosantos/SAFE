@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "280073223969",
+    "project_id": "safe-c3a3d",
+    "storage_bucket": "safe-c3a3d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:280073223969:android:7f184ec94b1c83e2228860",
+        "android_client_info": {
+          "package_name": "com.safe.safe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "280073223969-c3o08g2v6rokeb04dg150jv2g09b0rkg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.safe.safe",
+            "certificate_hash": "c23e7c94551dc62be7e47ada5f1e3c911a509afa"
+          }
+        },
+        {
+          "client_id": "280073223969-k1h7i0hbbcttc9tnt83q0pe962l9rp32.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWbzNlc1QXtDEplMy7smX_gBDBJe9_F4A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "280073223969-k1h7i0hbbcttc9tnt83q0pe962l9rp32.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "280073223969-be9j94kn8ff2kdtngg1nk889d7326em4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.paulo.safe.maioamarelo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

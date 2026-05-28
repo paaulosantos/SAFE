@@ -1,0 +1,35 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    configurations.all {
+        resolutionStrategy.force(
+            "androidx.activity:activity:1.9.3",
+            "androidx.activity:activity-ktx:1.9.3",
+            "androidx.core:core:1.13.1",
+            "androidx.core:core-ktx:1.13.1",
+            "androidx.credentials:credentials:1.3.0",
+            "androidx.credentials:credentials-play-services-auth:1.3.0",
+        )
+    }
+}
+
+val newBuildDir: Directory =
+    rootProject.layout.buildDirectory
+        .dir("../../build")
+        .get()
+rootProject.layout.buildDirectory.value(newBuildDir)
+
+subprojects {
+    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
+    project.layout.buildDirectory.value(newSubprojectBuildDir)
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register<Delete>("clean") {
+    delete(rootProject.layout.buildDirectory)
+}

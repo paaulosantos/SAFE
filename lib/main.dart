@@ -11,6 +11,7 @@ import 'package:safe/features/map/map_screen.dart';
 import 'package:safe/features/profile/profile_screen.dart';
 import 'package:safe/features/quiz/quiz_screen.dart';
 import 'package:safe/features/report/report_screen.dart';
+import 'package:safe/shared/services/local_auth_service.dart';
 import 'package:safe/shared/services/safe_app_store.dart';
 import 'package:safe/shared/services/safe_notification_service.dart';
 
@@ -84,6 +85,7 @@ class _AuthGateState extends State<AuthGate> {
       await FirebaseAuth.instance.signOut();
       await GoogleSignIn.instance.signOut();
     }
+    LocalAuthService.signOut();
 
     setState(() {
       _demoMode = false;

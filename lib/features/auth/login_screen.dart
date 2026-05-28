@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:safe/core/constants/app_colors.dart';
+import 'package:safe/shared/services/local_auth_service.dart';
 
 const _screenBg = Color(0xFF111022);
 const _panelBg = Color(0xFF1A182C);
@@ -52,10 +53,11 @@ class _LoginScreenState extends State<LoginScreen> {
       _message = null;
     });
 
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     try {
       final auth = FirebaseAuth.instance;
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
 
       if (_isCreatingAccount) {
         await auth.createUserWithEmailAndPassword(
@@ -67,6 +69,11 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       await widget.onAuthenticated?.call();
     } on FirebaseAuthException catch (error) {
+      if (error.code == 'operation-not-allowed') {
+        await _submitLocalAccount(email, password);
+        return;
+      }
+
       setState(() {
         _message = _authMessage(error);
       });
@@ -76,6 +83,21 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _submitLocalAccount(String email, String password) async {
+    try {
+      if (_isCreatingAccount) {
+        await LocalAuthService.createAccount(email: email, password: password);
+      } else {
+        await LocalAuthService.signIn(email: email, password: password);
+      }
+
+      await widget.onAuthenticated?.call();
+    } on LocalAuthException catch (error) {
+      if (!mounted) return;
+      setState(() => _message = error.message);
     }
   }
 
@@ -189,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
       case 'invalid-email':
         return 'Digite um e-mail válido.';
       case 'operation-not-allowed':
-        return 'Ative login por e-mail/senha no Firebase Authentication.';
+        return 'Login Firebase por e-mail/senha desativado. Usando conta local neste aparelho.';
       case 'user-not-found':
       case 'wrong-password':
       case 'invalid-credential':

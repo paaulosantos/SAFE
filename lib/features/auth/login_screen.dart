@@ -198,12 +198,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showComingSoon(String provider) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Login com $provider em breve.')));
-  }
-
   String _authMessage(FirebaseAuthException error) {
     switch (error.code) {
       case 'email-already-in-use':
@@ -291,15 +285,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: () {
                               _signInWithGoogle();
                             },
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: _SocialButton(
-                            prefix: 'iOS',
-                            icon: Icons.apple_rounded,
-                            label: 'Apple',
-                            onPressed: () => _showComingSoon('Apple'),
                           ),
                         ),
                       ],
@@ -709,13 +694,11 @@ class _SocialButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onPressed;
-  final String? prefix;
 
   const _SocialButton({
     required this.icon,
     required this.label,
     required this.onPressed,
-    this.prefix,
   });
 
   @override
@@ -733,17 +716,6 @@ class _SocialButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (prefix != null) ...[
-            Text(
-              prefix!,
-              style: const TextStyle(
-                color: _softText,
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(width: 6),
-          ],
           Icon(icon, size: 22),
           const SizedBox(width: 8),
           Flexible(
